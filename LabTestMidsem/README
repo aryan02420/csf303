@@ -1,0 +1,13 @@
+31120190136
+
+Compilation
+
+gcc server.c -o server.out
+
+gcc client.c -o client.out
+
+Running
+
+./server.out 4444
+
+./client.out 127.0.0.1 4444

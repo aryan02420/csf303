@@ -1,0 +1,22 @@
+2019A7PS0136G
+Lab05
+
+ - Compilation
+
+```bash
+gcc server.c -o server.out
+gcc client.c -o client.out
+```
+
+ - Start the server first
+
+```bash
+./server.out
+```
+
+ - Then start the client
+
+```
+./client.out
+```
+

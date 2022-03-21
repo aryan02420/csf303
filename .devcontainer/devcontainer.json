@@ -1,0 +1,26 @@
+{
+	"name": "Ubuntu",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": { "VARIANT": "focal" }
+	},
+
+	"settings": {
+		"editor.tabSize": 2,
+		"editor.unicodeHighlight.invisibleCharacters": true,
+		"editor.renderControlCharacters": true,
+		"editor.renderWhitespace": "all",
+		"editor.renderFinalNewline": true,
+		"editor.bracketPairColorization.enabled": true,
+		"editor.matchBrackets": "always",
+		"editor.guides.bracketPairsHorizontal": true,
+		"editor.guides.bracketPairs": true,
+	},
+	"extensions": [
+		"ms-vscode.cpptools-extension-pack",
+		"tomoki1207.pdf",
+	],
+	// "forwardPorts": [],
+	// "postCreateCommand": "uname -a",
+	"remoteUser": "vscode"
+}
