@@ -15,38 +15,44 @@
 // Helper Functions
 
 void write_with_log(int fd, char data[MAX_BUFFER_SIZE]) {
-  printf("S: %s\n", data);
+  printf("\rS: %s\n", data);
   write(fd, data, MAX_BUFFER_SIZE);
 }
 
 void read_with_log(int fd, char data[MAX_BUFFER_SIZE]) {
   read(fd, data, MAX_BUFFER_SIZE);
-  printf("C: %s\n", data);
+  printf("\rC: %s\n", data);
 }
 
 void read_stdin(char data[MAX_BUFFER_SIZE]) {
-  printf(">> ");
+  printf("\r>> ");
 	fgets(data, MAX_BUFFER_SIZE, stdin);
 	data[strlen(data) - 1] = 0;
 }
 
 void log_error(char message[]) {
-    printf("ERROR: ");
-    printf(message);
-    printf("\n");
-}
-void log_message(char message[]) {
-    printf(message);
-    printf("\n");
+  printf("ERROR: %s\n", message);
 }
 
-// void thread
+void log_message(char message[]) {
+  printf("\r%s\n", message);
+}
+
+void reverse_str(char *str) {
+  int i, len, temp;  
+  len = strlen(str); 
+  for (i = 0; i < len/2; i++) {
+    temp = str[i];
+    str[i] = str[len - i - 1];
+    str[len - i - 1] = temp;
+  }
+}
 
 
 int main(int argc, char *argv[]) {
 
   int socket_fd, connection_fd;
-  struct sockaddr_in socket_addr;
+  struct sockaddr_in socket_addr, connection_addr;
   char write_buffer[MAX_BUFFER_SIZE];
   char read_buffer[MAX_BUFFER_SIZE];
   char temp_str[MAX_BUFFER_SIZE];
@@ -100,23 +106,27 @@ int main(int argc, char *argv[]) {
     log_error("Could not listen on socket");
     exit(EXIT_FAILURE);
   }
-  sprintf(temp_str, "Listening on http://localhost:%d", server_port);
+  sprintf(temp_str, "Listening on localhost:%d", server_port);
   log_message(temp_str);
 
   // ### SERVE ###
 
-  int client_id = 0;
+  int num_clients = 0;
 
   while(1) {
 
     // ACCEPT CONNECTION
     int addr_len = sizeof(socket_addr);
-    connection_fd = accept(socket_fd, (struct sockaddr*) &socket_addr, (socklen_t*) &addr_len);
+    connection_fd = accept(socket_fd, (struct sockaddr*) &connection_addr, (socklen_t*) &addr_len);
+    char *connection_ip = inet_ntoa(connection_addr.sin_addr);
+    int connection_port = ntohs(connection_addr.sin_port);
+
     if (connection_fd == -1) {
       log_error("Could not accept connection");
       exit(EXIT_FAILURE);
     }
-    log_message("Connection accepted");
+    sprintf(temp_str, "Connection accepted from %s:%d", connection_ip, connection_port);
+    log_message(temp_str);
 
     // CREATE A NEW PROCESS TO HANDLE EACH CLIENT
     int child_pid = fork();
@@ -125,23 +135,34 @@ int main(int argc, char *argv[]) {
       exit(EXIT_FAILURE);
     }
 
-    client_id++;
+    num_clients++;
+
+    // SERVER ACCEPTS UTMOST 4 CLIENTS
+    if (num_clients > 4) {
+      log_error("cannot connect more than 4 clients");
+      close(connection_fd);
+      continue;
+    }
 
     if(child_pid == 0){
+      close(socket_fd);
       
       // SERVE THE CLIENT
       while(1) {
         read_with_log(connection_fd, read_buffer);
-        write_with_log(connection_fd, read_buffer);
+        reverse_str(read_buffer);
+        log_message(read_buffer);
+        sprintf(temp_str, "FROM %s:%d", connection_ip, connection_port);
+        log_message(temp_str);
         read_stdin(read_buffer);
         write_with_log(connection_fd, read_buffer);
         // break;
       }
   
       // CLOSE CONNECTION
-      close(socket_fd);
+      close(connection_fd);
+      num_clients--;
 		}
-
 
   }
 

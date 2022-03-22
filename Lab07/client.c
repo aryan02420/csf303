@@ -14,29 +14,37 @@
 // Helper Functions
 
 void write_with_log(int fd, char data[MAX_BUFFER_SIZE]) {
-	printf("C: %s\n", data);
+	printf("\rC: %s\n", data);
 	write(fd, data, MAX_BUFFER_SIZE);
 }
 
 void read_with_log(int fd, char data[MAX_BUFFER_SIZE]) {
 	read(fd, data, MAX_BUFFER_SIZE);
-	printf("S: %s\n", data);
+	printf("\rS: %s\n", data);
 }
 
 void read_stdin(char data[MAX_BUFFER_SIZE]) {
-  printf(">> ");
+  printf("\r>> ");
 	fgets(data, MAX_BUFFER_SIZE, stdin);
 	data[strlen(data) - 1] = 0;
 }
 
 void log_error(char message[]) {
-    printf("ERROR: ");
-    printf(message);
-    printf("\n");
+  printf("ERROR: %s\n", message);
 }
+
 void log_message(char message[]) {
-    printf(message);
-    printf("\n");
+  printf("\r%s\n", message);
+}
+
+void reverse_str(char *str) {
+  int i, len, temp;  
+  len = strlen(str); 
+  for (i = 0; i < len/2; i++) {
+    temp = str[i];
+    str[i] = str[len - i - 1];
+    str[len - i - 1] = temp;
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -88,13 +96,17 @@ int main(int argc, char *argv[]) {
     // READ FROM STDIN AND SEND TO SERVER
     read_stdin(write_buffer);
 
-    // if exit
-    // break;
+    // EXIT COMMAND
+    if(strcmp(write_buffer, "exit") == 0) {
+      log_message("Disconnecting...");
+      break;
+    }
 
-    // else
     write_with_log(socket_fd, write_buffer);
 
     read_with_log(socket_fd, read_buffer);
+    reverse_str(read_buffer);
+    log_message(read_buffer);
   
   }
 
