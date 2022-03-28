@@ -1,0 +1,12 @@
+Write TCP client to download and locally save a file.
+1. The client, as a command-line argument, accepts the URL of the file. The URL can be HTTP or HTTPS-based. (2 marks)
+2. If the URL does not exist or unreachable, the client prints an error and exits. (2 marks)
+3. After connecting to the server, the client sends a GET request to the server to get the file. (2 marks)
+4. The client downloads the whole file and saves it to the local folder with the same file name as mentioned in the URL. (6 marks)
+5. If a file with the same name exists, the old file is overwritten. (1 mark)
+6. The client exits after downloading the file. (1 mark)
+Notes:
+1. All the students will upload C code along with a PDF file containing the screenshots of the executed program on Google classroom
+2. Submit a README file giving instruction for compilation and execution
+3. You will get zero marks if the PDF or the README is missing
+4. Please submit a single zip file named <Name>_<ID_number>. Make sure to turn in your submissions on time.
