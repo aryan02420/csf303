@@ -5,6 +5,21 @@
 		"args": { "VARIANT": "focal" }
 	},
 
+  "containerEnv": {
+    "DISPLAY": "${localEnv:DISPLAY}"
+  },
+
+  "mounts": [
+    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
+  ],
+
+	"runArgs": [
+		"--net=host",
+		"--cap-add=NET_ADMIN",
+		"--cap-add=NET_RAW",
+		"--privileged"
+	],
+
 	"settings": {
 		"editor.tabSize": 2,
 		"editor.unicodeHighlight.invisibleCharacters": true,
@@ -22,6 +37,6 @@
 		"tomoki1207.pdf",
 	],
 	// "forwardPorts": [],
-	// "postCreateCommand": "uname -a",
+	"postCreateCommand": "sudo dpkg-reconfigure wireshark-common -f noninteractive && sudo groupadd wireshark && sudo usermod -a -G wireshark `whoami` && sudo chgrp wireshark /usr/bin/dumpcap && sudo chmod 4750 /usr/bin/dumpcap && sudo setcap 'CAP_NET_RAW+eip CAP_NET_ADMIN+eip' /usr/bin/dumpcap && exit",
 	"remoteUser": "vscode"
 }

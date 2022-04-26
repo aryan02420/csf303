@@ -10,7 +10,27 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#include <pthread.h>
+#include <semaphore.h>
+
 #define MAX_BUFFER_SIZE 4096
+#define MAX_CLIENTS 4
+
+// global variables
+
+int socket_fd, connection_fd;
+struct sockaddr_in socket_addr, connection_addr;
+char write_buffer[MAX_BUFFER_SIZE];
+char read_buffer[MAX_BUFFER_SIZE];
+char temp_str[MAX_BUFFER_SIZE];
+int num_clients = 0;
+sem_t mutex_nc;
+
+struct server_args {
+	int connection_fd;
+  char *connection_ip;
+  int connection_port;
+};
 
 // Helper Functions
 
@@ -49,13 +69,32 @@ void reverse_str(char *str) {
 }
 
 
-int main(int argc, char *argv[]) {
+void *handleClient(struct server_args sargs) {
 
-  int socket_fd, connection_fd;
-  struct sockaddr_in socket_addr, connection_addr;
-  char write_buffer[MAX_BUFFER_SIZE];
-  char read_buffer[MAX_BUFFER_SIZE];
-  char temp_str[MAX_BUFFER_SIZE];
+  int connection_fd = sargs.connection_fd;
+  char *connection_ip = sargs.connection_ip;
+  int connection_port = sargs.connection_port;
+
+  // SERVE THE CLIENT
+  while(1) {
+    read_with_log(connection_fd, read_buffer);
+    reverse_str(read_buffer);
+    log_message(read_buffer);
+    sprintf(temp_str, "FROM %s:%d", connection_ip, connection_port);
+    log_message(temp_str);
+    read_stdin(read_buffer);
+    write_with_log(connection_fd, read_buffer);
+    // break;
+  }
+
+  // CLOSE CONNECTION
+  close(connection_fd);
+  num_clients--;
+}
+
+
+
+int main(int argc, char *argv[]) {
 
   // CHECK IF PORT NUM IS PROVIDED AS CLI ARG
   if (argc <= 1) {
@@ -111,9 +150,10 @@ int main(int argc, char *argv[]) {
 
   // ### SERVE ###
 
-  int num_clients = 0;
-
   while(1) {
+
+    // REJECT EXTRA CONNECTIONS
+    if (num_clients > MAX_CLIENTS) continue;
 
     // ACCEPT CONNECTION
     int addr_len = sizeof(socket_addr);
@@ -128,6 +168,8 @@ int main(int argc, char *argv[]) {
     sprintf(temp_str, "Connection accepted from %s:%d", connection_ip, connection_port);
     log_message(temp_str);
 
+    num_clients++;
+
     // CREATE A NEW PROCESS TO HANDLE EACH CLIENT
     int child_pid = fork();
     if (child_pid < 0) {
@@ -135,34 +177,17 @@ int main(int argc, char *argv[]) {
       exit(EXIT_FAILURE);
     }
 
-    num_clients++;
 
-    // SERVER ACCEPTS UTMOST 4 CLIENTS
-    if (num_clients > 4) {
-      log_error("cannot connect more than 4 clients");
-      close(connection_fd);
-      continue;
-    }
+    pthread_t thread_id;
+    struct server_args sargs;  
+    sargs.connection_fd = connection_fd;
+    sargs.connection_ip = connection_ip;
+    sargs.connection_port = connection_port;
+    int thread_status = pthread_create(&thread_id, NULL, handleClient, &sargs);
 
-    if(child_pid == 0){
-      close(socket_fd);
+
       
-      // SERVE THE CLIENT
-      while(1) {
-        read_with_log(connection_fd, read_buffer);
-        reverse_str(read_buffer);
-        log_message(read_buffer);
-        sprintf(temp_str, "FROM %s:%d", connection_ip, connection_port);
-        log_message(temp_str);
-        read_stdin(read_buffer);
-        write_with_log(connection_fd, read_buffer);
-        // break;
-      }
-  
-      // CLOSE CONNECTION
-      close(connection_fd);
-      num_clients--;
-		}
+
 
   }
 

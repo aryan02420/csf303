@@ -1,0 +1,10 @@
+Write TCP client and server chat application.
+
+There are two clients and a server in the application. The two clients communicate with each other via the server. When one client sends a message to the server, the server stores the message as a text file in the server, where file name is clientid_timestamp.txt. The server then sends the file to the other client that reads the file and displays its content on its terminal. 
+
+The server, as a command line argument, accepts the binding port number. 
+The two clients accept the server’s IP address and port number as command line arguments. 
+After connecting to the server, each of the clients keeps on reading a line from the standard input and sends it to the server. 
+The server writes every new line it receives from the client in a new text file. It then sends the text file to the other client. It displays “MESSAGE SENT TO <IP ADDRESS>:<PORT NO>” on its terminal. Replace <IP ADDRESS>  and <PORT NUMBER> with actual values.
+The client, on receiving a text file, reads the content and displays the content on the terminal. 
+Both clients exit when either client sends “EXIT” from the terminal. 
